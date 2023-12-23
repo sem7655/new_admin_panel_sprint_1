@@ -64,10 +64,7 @@ class Person_film_work:
     film_work_id: uuid.UUID = field(default_factory=uuid.uuid4)
 
 
-movie = Film_work(title='movie1', description='new movie', rating=0.0, type='fff', creation_date=datetime.today(),
-                  created=datetime.now(), modified=datetime.now(), id=uuid.UUID('58725b1a-26ac-4bde-9658-ee4af98663cb'))
-# print(movie)
-# print(movie.title)
+
 
 psycopg2.extras.register_uuid()
 
@@ -116,95 +113,129 @@ def save_person_film_work_to_postgres(conn: psycopg2.extensions.connection, pers
                       (person_film_work.id, person_film_work.film_work_id, person_film_work.person_id,
                        person_film_work.role, person_film_work.created))
 
-
+#1
 def load_movies_from_sqlite(connection: sqlite3.Connection, conn, n):
     movies_list = []
+
     cur = connection.cursor()
-    cur.execute("select * from film_work")
+    cur.execute("select * from **film_work**")
+    cur.row_factory = sqlite3.Row
+
     while True:
         rows = cur.fetchmany(n)
         if rows:
-            movies_list.clear()
-            for i in range(len(rows)):
-                movie = Film_work(title=rows[i][1], description=rows[i][2], rating=rows[i][5], type=rows[i][6],
-                                  creation_date=rows[i][3],
-                                  created=rows[i][7], modified=rows[i][8],
-                                  id=uuid.UUID(rows[i][0]))
+            for row in rows:
+                movie = Film_work(
+                    title=row["title"],
+                    description=row["description"],
+                    rating=rows["rating"],
+                    type=rows["type"],
+                    created=row["created"],
+                    modified=row["modified"],
+                    id=uuid.UUID(row["id"]),
+                )
                 movies_list.append(movie)
+
             save_film_work_to_postgres(conn, movies_list)
+            movies_list = []
         else:
             break
 
-
+#2
 def load_genres_from_sqlite(connection: sqlite3.Connection, conn, n):
-    genre_list = []
-    cur = connection.cursor()
-    cur.execute("select * from genre")
-    while True:
-        rows = cur.fetchmany(n)
-        if rows:
-            genre_list.clear()
-            for i in range(len(rows)):
-                genre = Genre(name=rows[i][1], description=rows[i][2],
-                              created=rows[i][3], modified=rows[i][4],
-                              id=uuid.UUID(rows[i][0]))
-                genre_list.append(genre)
-            save_genre_to_postgres(conn, genre_list)
-        else:
-            break
+   genre_list = []
+   cur = connection.cursor()
+   cur.execute("select * from genre")
+   cur.row_factory = sqlite3.Row
+
+   while True:
+       rows = cur.fetchmany(n)
+       if rows:
+           for row in rows:
+               genre = Genre(
+                   name=row["name"],
+                   description=row["description"],
+                   created=row["created"],
+                   modified=row["modified"],
+                   id=uuid.UUID(row["id"]),
+               )
+               genre_list.append(genre)
+           save_genre_to_postgres(conn, genre_list)
+           genre_list = []
+       else:
+           break
 
 
+#3
 def load_persons_from_sqlite(connection: sqlite3.Connection, conn, n):
-    person_list = []
-    cur = connection.cursor()
-    cur.execute("select * from person")
-    while True:
-        rows = cur.fetchmany(n)
-        if rows:
-            person_list.clear()
-            for i in range(len(rows)):
-                person = Person(full_name=rows[i][1], created=rows[i][2],
-                                modified=rows[i][3], id=uuid.UUID(rows[i][0]))
-                person_list.append(person)
-            save_person_to_postgres(conn, person_list)
-        else:
-            break
+   person_list = []
+   cur = connection.cursor()
+   cur.execute("select * from genre")
+   cur.row_factory = sqlite3.Row
 
+   while True:
+       rows = cur.fetchmany(n)
+       if rows:
+           for row in rows:
+               person = Person(
+                   full_name=rows["full_name"],
+                   created=row["created"],
+                   modified=row["modified"],
+                   id=uuid.UUID(row["id"]),
+               )
+               person_list.append(person)
+           save_person_to_postgres(conn, person_list)
+           person_list = []
+       else:
+           break
 
+#4
 def load_genre_film_work_from_sqlite(connection: sqlite3.Connection, conn, n):
-    genre_film_work_list = []
-    cur = connection.cursor()
-    cur.execute("select * from genre_film_work")
-    while True:
-        rows = cur.fetchmany(n)
-        if rows:
-            genre_film_work_list.clear()
-            for i in range(len(rows)):
-                genre_film_work = Genre_film_work(film_work_id=uuid.UUID(rows[i][1]), created=rows[i][3],
-                                                  genre_id=uuid.UUID(rows[i][2]), id=uuid.UUID(rows[i][0]))
-                genre_film_work_list.append(genre_film_work)
-            save_genre_film_work_to_postgres(conn, genre_film_work_list)
-        else:
-            break
+   genre_film_work_list = []
+   cur = connection.cursor()
+   cur.execute("select * from genre")
+   cur.row_factory = sqlite3.Row
 
+   while True:
+       rows = cur.fetchmany(n)
+       if rows:
+           for row in rows:
+               genre_film_work = Genre_film_work(
+                   film_work_id=uuid.UUID(row["id"]),
+                   created=row["created"],
+                   modified=row["modified"],
+                   genre_id=uuid.UUID(row["id"]),
+                   id=uuid.UUID(row["id"]),
+               )
+               genre_film_work_list.append(genre_film_work)
+           save_genre_to_postgres(conn, genre_film_work_list)
+           genre_film_work_list = []
+       else:
+           break
 
+#5
 def load_person_film_work_from_sqlite(connection: sqlite3.Connection, conn, n):
-    person_film_work_list = []
-    cur = connection.cursor()
-    cur.execute("select * from person_film_work")
-    while True:
-        rows = cur.fetchmany(n)
-        if rows:
-            person_film_work_list.clear()
-            for i in range(len(rows)):
-                person_film_work = Person_film_work(film_work_id=uuid.UUID(rows[i][1]), created=rows[i][4],
-                                                    person_id=uuid.UUID(rows[i][2]), role=rows[i][3],
-                                                    id=uuid.UUID(rows[i][0]))
-                person_film_work_list.append(person_film_work)
-            save_person_film_work_to_postgres(conn, person_film_work_list)
-        else:
-            break
+   person_film_work_list = []
+   cur = connection.cursor()
+   cur.execute("select * from genre")
+   cur.row_factory = sqlite3.Row
 
+   while True:
+       rows = cur.fetchmany(n)
+       if rows:
+           for row in rows:
+               person_film_work = Person_film_work(
+                   film_work_id=uuid.UUID(row["id"]),
+                   created=row["created"],
+                   modified=row["modified"],
+                   person_id=uuid.UUID(row["id"]),
+                   id=uuid.UUID(row["id"]),
+               )
+               person_film_work_list.append(person_film_work)
+           save_genre_to_postgres(conn, person_film_work_list)
+           person_film_work_list = []
+       else:
+           break
 
 def load_from_sqlite(connection: sqlite3.Connection, pg_conn: _connection):
     n = 5
